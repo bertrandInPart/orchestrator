@@ -112,22 +112,36 @@ export async function listFeatures(config) {
 }
 
 /**
- * Fetches and parses the comment activity feed for one feature's ticket,
- * extracting the `<!-- meta: ... -->` convention (rendered by agents as
- * plain text in Jira's comment body, since Jira comments aren't Markdown).
+ * Resolves a feature slug to its Jira issue key as cheaply as possible.
+ * With no JIRA_FEATURE_SLUG_FIELD configured (the default), the slug
+ * already *is* the issue key, so we can hit the issue directly instead of
+ * paging through every issue in the project via JQL search. Only a slug
+ * that doesn't look like an issue key (a genuinely custom slug field value)
+ * needs the full listFeatures() lookup.
  */
-export async function getFeatureComments(config, slug) {
+async function resolveIssueKey(config, slug) {
+  const { projectKey } = config.jira;
+  const issueKeyRe = new RegExp(`^${projectKey}-\\d+$`);
+  if (issueKeyRe.test(slug)) return slug;
+
   const features = await listFeatures(config);
   const feature = features.find((f) => f.slug === slug);
   if (!feature) {
     throw new Error(`No Jira issue found for feature slug "${slug}".`);
   }
+  return feature.ticketId;
+}
+
+/**
+ * Fetches and parses the comment activity feed for one feature's ticket,
+ * extracting the `<!-- meta: ... -->` convention (rendered by agents as
+ * plain text in Jira's comment body, since Jira comments aren't Markdown).
+ */
+export async function getFeatureComments(config, slug) {
+  const issueKey = await resolveIssueKey(config, slug);
 
   const { baseUrl } = config.jira;
-  const data = await jiraRequest(
-    baseUrl,
-    `/rest/api/3/issue/${feature.ticketId}/comment?orderBy=created`
-  );
+  const data = await jiraRequest(baseUrl, `/rest/api/3/issue/${issueKey}/comment?orderBy=created`);
 
   return data.comments.map((c) => {
     const bodyText = adfToPlainText(c.body);
@@ -137,7 +151,7 @@ export async function getFeatureComments(config, slug) {
       author: c.author?.displayName ?? "unknown",
       createdAt: c.created,
       body: bodyText,
-      url: `${baseUrl}/browse/${feature.ticketId}?focusedCommentId=${c.id}`,
+      url: `${baseUrl}/browse/${issueKey}?focusedCommentId=${c.id}`,
       meta: match
         ? { agent: match[1], stage: match[2], status: match[3], timestamp: match[4] }
         : null,
