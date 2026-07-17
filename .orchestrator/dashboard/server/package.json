@@ -6,10 +6,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --watch index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "node --test",
+    "lint": "oxlint ."
   },
   "dependencies": {
     "express": "^4.19.2",
     "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "oxlint": "^1.71.0"
   }
 }

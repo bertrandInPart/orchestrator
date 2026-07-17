@@ -37,7 +37,7 @@ async function githubRequest(url, { method = "GET", body } = {}) {
       "Content-Type": "application/json",
       "X-GitHub-Api-Version": "2022-11-28",
     },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
