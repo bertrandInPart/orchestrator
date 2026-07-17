@@ -12,7 +12,7 @@
     "build": "npm run build --workspace=client",
     "start": "npm run build && node server/index.js",
     "lint": "npm run lint --workspace=client && npm run lint --workspace=server",
-    "test": "npm run test --workspace=server"
+    "test": "npm run test --workspace=server && npm run test --workspace=client"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
