@@ -1,0 +1,51 @@
+# .orchestrator/config.yml
+#
+# Minimal config for local dashboard development/testing. If a full wizard
+# run happens later (.orchestrator/scripts/init-wizard.py), it will overwrite
+# this file with the complete set of first-run decisions.
+
+project:
+  name: "orchestrator"
+  scope: "backend"
+  companion_repo: ""
+
+backend:
+  enabled: true
+  language: ""
+  framework: ""
+  path: ""
+  package_manager: ""
+  test_command: ""
+
+frontend:
+  enabled: false
+  language: ""
+  framework: ""
+  path: ""
+
+database:
+  name: ""
+  orm: ""
+  migrations_path: ""
+
+ticket_system:
+  provider: "github"
+  github:
+    owner: ""
+    repo: ""
+    issue_labels: ["feature"]
+    issue_priority_options: ["Low", "Medium", "High", "Urgent"]
+
+stages:
+  enabled: ["spec-writer", "architect", "backend-builder", "test-engineer", "reviewer", "release-engineer"]
+  human_checkpoints: ["Spec Review", "Architecture Review"]
+
+reliability:
+  circuit_breaker_threshold: 3
+
+deploy:
+  staging_enabled: true
+  production_enabled: true
+
+bot_identity:
+  commit_author_name: "copilot-agent"

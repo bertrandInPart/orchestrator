@@ -1,0 +1,48 @@
+name: Feature Request
+description: >
+  Raw intake for a new feature to enter the agentic production chain. Keep this minimal — the
+  real thinking-through happens in the Spec Writer agent's spec.md, not here.
+title: "[Feature]: "
+labels:
+  - feature
+body:
+  - type: input
+    id: feature-name
+    attributes:
+      label: Feature name
+      description: A short, descriptive name (used to derive the feature slug).
+      placeholder: "User avatar upload"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: One-paragraph description
+      description: >
+        What do you want, roughly? Don't worry about edge cases, UX detail, or implementation —
+        the Spec Writer agent will interrogate this and ask you what's missing.
+      placeholder: >
+        As a user, I want to upload a profile picture so my account feels more personal...
+    validations:
+      required: true
+
+  - type: input
+    id: requester
+    attributes:
+      label: Requester
+      description: Who is asking for this (name, team, or "self" if you're filing it for yourself).
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Rough priority
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Urgent"
+    validations:
+      required: true

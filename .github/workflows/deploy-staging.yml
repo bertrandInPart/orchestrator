@@ -1,0 +1,28 @@
+name: Deploy — Staging
+
+# PLACEHOLDER. Real deploy steps depend on server/** and client/** app code, which doesn't exist
+# in this repo yet (per the orchestration-first build order). This workflow exists now so the
+# trigger, environment, and required-checks wiring are already correct once app code lands.
+#
+# Per blueprint §7/§8: staging deploy is automatic on a merge to develop; production deploy
+# (deploy-prod.yml) requires a manual-approval gate that no agent may bypass or edit. No agent may
+# modify this file or deploy-prod.yml — see the `never` list in .orchestrator/agent-boundaries.yml.
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v5
+      - name: Deploy to staging (placeholder)
+        run: |
+          echo "TODO: once server/** and client/** exist, build and deploy them to staging here."
+          echo "This step intentionally does nothing yet."

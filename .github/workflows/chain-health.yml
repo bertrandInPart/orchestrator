@@ -1,0 +1,232 @@
+name: Chain Health (stall & hang detector)
+
+# Scheduled, separate from the per-agent Copilot automations (blueprint §10.5). Runs two
+# complementary checks against open feature issues:
+#
+#   1. Stall detector - Stage hasn't changed in over STALL_THRESHOLD_HOURS while Current Agent is
+#      not "none". Catches an automation that should have picked up work but never ran at all (no
+#      "starting work" comment ever posted for the current stage).
+#   2. Hang detector - the most recent stage-progress comment is a "starting work" comment (see
+#      ticket-comments.skill.md) older than STAGE_TIMEOUT_MINUTES, with no completion/retry/
+#      callback/escalation comment after it. Catches an automation that *did* pick up the work but
+#      never finished - a hung run. Flagged via the `stage-timeout` label so the agent's own
+#      on-start-checks.skill.md can log the hang as a `timeout` telemetry entry (feeding the
+#      circuit breaker) the next time it's triggered.
+#
+# Neither check takes automatic corrective action beyond a comment/label - a human decides whether
+# to re-trigger, investigate, or pause the chain.
+#
+# Credential note: uses CHAIN_BOT_TOKEN (see .orchestrator/docs/ops/bot-identity.md) because the default
+# GITHUB_TOKEN does not carry Projects v2 access.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *" # every 30 minutes - the hang detector needs finer granularity than
+      # the old 4-hourly stall-only schedule; the stall check is cheap enough to ride along
+  workflow_dispatch: {}
+
+env:
+  # Filled in by .orchestrator/scripts/setup-github-project.sh (see
+  # .github/instructions/github-workflow.instructions.md for the recorded values).
+  PROJECT_OWNER: "<PROJECT_OWNER>"
+  PROJECT_NUMBER: "<PROJECT_NUMBER>"
+  STALL_THRESHOLD_HOURS: "24"
+  STAGE_TIMEOUT_MINUTES: "45"
+
+permissions:
+  # Declaring `permissions:` at all resets every unlisted scope to `none` - `contents: read` is
+  # required here so `actions/checkout` can read this (private) repo; without it, checkout fails
+  # with a misleading "repository not found" error rather than a permissions error.
+  contents: read
+  issues: write
+
+jobs:
+  check-stalls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Scan for stalled features
+        env:
+          GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
+        run: |
+          set -euo pipefail
+          ITEMS_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json)
+          export ITEMS_JSON
+          python3 - "$STALL_THRESHOLD_HOURS" <<'PYEOF'
+          import json, os, sys, subprocess
+          from datetime import datetime, timezone
+
+          threshold_hours = float(sys.argv[1])
+          # Read the JSON payload from an env var, not stdin - stdin here is already consumed by
+          # the shell delivering this heredoc as python's own script source (`python3 -`), so
+          # `json.load(sys.stdin)` would always see EOF. This was a real bug: piping into a command
+          # that also has a heredoc redirect on it doesn't work - the heredoc wins as stdin.
+          data = json.loads(os.environ["ITEMS_JSON"])
+
+          def find_field(item, target_name):
+              # `gh project item-list --format json` exposes custom fields with only their first
+              # word lowercased and the rest of the display name kept as-is, spaces included (e.g.
+              # "Current Agent" -> "current Agent", verified against the live board - NOT camelCase
+              # as GitHub's own docs might suggest). Match case/space-insensitively so this
+              # survives minor gh CLI formatting differences across versions.
+              target = target_name.replace(" ", "").lower()
+              for key, value in item.items():
+                  if key.replace(" ", "").lower() == target:
+                      return value
+              return None
+
+          for item in data.get("items", []):
+              content = item.get("content") or {}
+              issue_number = content.get("number")
+              repository = content.get("repository")
+              if not issue_number or not repository:
+                  continue
+
+              current_agent = find_field(item, "Current Agent")
+              if not current_agent or current_agent == "none":
+                  continue
+
+              # `gh project item-list` does NOT include an updatedAt/timestamp field on the item
+              # or its content (verified against the live board) - fetch it per-issue instead.
+              issue_json = subprocess.run(
+                  ["gh", "issue", "view", str(issue_number), "--repo", repository, "--json", "updatedAt"],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              ).stdout
+              updated_at = json.loads(issue_json).get("updatedAt")
+              if not updated_at:
+                  continue
+
+              updated_dt = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+              age_hours = (datetime.now(timezone.utc) - updated_dt).total_seconds() / 3600
+
+              if age_hours > threshold_hours:
+                  body = (
+                      f"### :warning: Chain health check\n\n"
+                      f"This feature's `Stage` hasn't changed in over {threshold_hours:.0f}h while "
+                      f"`Current Agent` is `{current_agent}`. This may mean an automation that "
+                      f"should have picked up work didn't run. A human should check "
+                      f"`.orchestrator/docs/ops/agent-telemetry.jsonl` for this issue and re-trigger the stage "
+                      f"manually if needed."
+                  )
+                  subprocess.run(
+                      ["gh", "issue", "comment", str(issue_number), "--body", body],
+                      check=True,
+                  )
+          PYEOF
+
+      - name: Ensure the stage-timeout label exists
+        env:
+          GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
+        run: |
+          gh label create stage-timeout \
+            --color "B60205" \
+            --description "A stage attempt hung past its time budget - see chain-health.yml" \
+            2>/dev/null || true
+
+      - name: Scan for hung stage attempts (timeout guard)
+        env:
+          GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
+        run: |
+          set -euo pipefail
+          ITEMS_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json)
+          export ITEMS_JSON
+          python3 - "$STAGE_TIMEOUT_MINUTES" <<'PYEOF'
+          import json, os, re, sys, subprocess
+          from datetime import datetime, timezone
+
+          timeout_minutes = float(sys.argv[1])
+          data = json.loads(os.environ["ITEMS_JSON"])
+
+          # Matches the metadata line every ticket-comments.skill.md template embeds, e.g.:
+          #   <!-- meta: agent=backend-builder stage=Implementation status=started timestamp=2026-07-10T08:00:00Z -->
+          META_RE = re.compile(
+              r"<!--\s*meta:\s*agent=([\w.-]+)\s+stage=(.*?)\s+status=([\w.-]+)\s+timestamp=(\S+?)\s*-->"
+          )
+
+          def find_field(item, target_name):
+              target = target_name.replace(" ", "").lower()
+              for key, value in item.items():
+                  if key.replace(" ", "").lower() == target:
+                      return value
+              return None
+
+          for item in data.get("items", []):
+              content = item.get("content") or {}
+              issue_number = content.get("number")
+              repository = content.get("repository")
+              if not issue_number or not repository:
+                  continue
+
+              current_agent = find_field(item, "Current Agent")
+              if not current_agent or current_agent == "none":
+                  continue
+
+              issue_json = subprocess.run(
+                  ["gh", "issue", "view", str(issue_number), "--repo", repository,
+                   "--json", "comments,labels"],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              ).stdout
+              issue_data = json.loads(issue_json)
+
+              labels = {l.get("name") for l in issue_data.get("labels", [])}
+              if "stage-timeout" in labels:
+                  # Already flagged and not yet cleared by the agent's on-start-checks - don't
+                  # re-flag or re-comment every 30 minutes.
+                  continue
+
+              comments = issue_data.get("comments", [])
+              # Find the most recent comment carrying our metadata line.
+              latest_meta = None
+              latest_dt = None
+              for c in comments:
+                  m = META_RE.search(c.get("body", ""))
+                  if not m:
+                      continue
+                  created_at = c.get("createdAt")
+                  if not created_at:
+                      continue
+                  dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                  if latest_dt is None or dt > latest_dt:
+                      latest_dt = dt
+                      latest_meta = m
+
+              if latest_meta is None or latest_dt is None:
+                  continue
+
+              agent, stage, status, _timestamp = latest_meta.groups()
+              if status != "started" or agent != current_agent:
+                  # The most recent progress comment isn't an in-flight "starting work" comment
+                  # for the agent currently assigned - either it already finished/escalated/called
+                  # back, or a different agent's stage started since. Nothing hung.
+                  continue
+
+              age_minutes = (datetime.now(timezone.utc) - latest_dt).total_seconds() / 60
+              if age_minutes <= timeout_minutes:
+                  continue
+
+              body = (
+                  f"### :hourglass_flowing_sand: Chain health check — possible hang\n\n"
+                  f"`{current_agent}` posted a \"starting work\" comment for stage `{stage}` "
+                  f"{age_minutes:.0f} minutes ago (budget: {timeout_minutes:.0f}m) with no "
+                  f"follow-up comment since. This usually means the run hung or errored without "
+                  f"reporting back.\n\n"
+                  f"Labeled `stage-timeout` — the next time `{current_agent}` runs on this issue, "
+                  f"it will log this attempt as a `timeout` in `.orchestrator/docs/ops/agent-telemetry.jsonl` "
+                  f"(counting toward the circuit breaker) and clear this label before retrying. "
+                  f"A human can also re-trigger the stage manually or investigate now."
+              )
+              subprocess.run(
+                  ["gh", "issue", "comment", str(issue_number), "--body", body],
+                  check=True,
+              )
+              subprocess.run(
+                  ["gh", "issue", "edit", str(issue_number), "--repo", repository,
+                   "--add-label", "stage-timeout"],
+                  check=True,
+              )
+          PYEOF

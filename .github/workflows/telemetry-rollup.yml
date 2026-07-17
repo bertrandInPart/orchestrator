@@ -1,0 +1,46 @@
+name: Telemetry Rollup
+
+# Scheduled, read-only-in-spirit summary of .orchestrator/docs/ops/agent-telemetry.jsonl on develop. Answers
+# "is the chain healthy" at a glance instead of grepping a raw JSONL log: per-stage success rate,
+# retry rate, average duration, and infra-error visibility. Writes the summary directly to
+# .orchestrator/docs/ops/telemetry-rollup.md and commits it straight to develop, the same way chain-health.yml's
+# own docs updates work - this is generated ops tooling output, not chain-agent work product, so
+# it doesn't go through a feature branch/PR.
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # once a day
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  rollup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: develop
+
+      - name: Generate rollup
+        run: |
+          set -euo pipefail
+          python3 .orchestrator/scripts/telemetry-rollup.py \
+            --input .orchestrator/docs/ops/agent-telemetry.jsonl \
+            --output .orchestrator/docs/ops/telemetry-rollup.md
+
+      - name: Commit if changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- .orchestrator/docs/ops/telemetry-rollup.md; then
+            echo "No change in rollup - nothing to commit."
+            exit 0
+          fi
+          git config user.name "chain-health-bot"
+          git config user.email "chain-health-bot@users.noreply.github.com"
+          git add .orchestrator/docs/ops/telemetry-rollup.md
+          git commit -m "docs: refresh telemetry rollup
+
+Agent: none"
+          git push origin develop

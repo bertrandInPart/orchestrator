@@ -1,0 +1,20 @@
+# .orchestrator/evals/architect/rubric.yml
+criteria:
+  - id: has-component-route-schema-breakdown
+    description: "architecture.md specifies which components/routes/schemas are new vs. modified, concretely enough to build from"
+    applies_to: ["001", "002"]
+  - id: freezes-api-contract
+    description: "Request/response shape for any new/changed endpoint is written explicitly (even a short stub)"
+    applies_to: ["001", "002"]
+  - id: maps-every-edge-case
+    description: "Every edge case from spec.md has a stated handling location (validation layer, schema constraint, UI state)"
+    applies_to: ["001"]
+  - id: flags-oversized-work
+    description: "Explicitly flags when backend or frontend implementation looks too large for one session and proposes a split"
+    applies_to: ["002"]
+  - id: no-production-code
+    description: "Contains no actual implementation code — design only"
+    applies_to: ["001", "002"]
+  - id: does-not-resolve-open-questions-itself
+    description: "Does not silently resolve a spec.md open question that the human hasn't actually answered"
+    applies_to: ["001", "002"]

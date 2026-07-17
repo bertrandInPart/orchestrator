@@ -1,0 +1,54 @@
+# agent-boundaries.yml
+#
+# The enforced version of each chatmode's "allowed_write_paths" frontmatter.
+# scripts/check-agent-boundaries.sh reads this file in CI and fails the build
+# if any commit's changed files fall outside the committing agent's allow-list,
+# or inside the `never` list, regardless of that agent's own good intentions.
+#
+# Paths not listed for a given agent are forbidden to that agent, full stop.
+# Glob patterns follow standard gitignore-style matching (via git ls-files
+# --error-unmatch / a glob library — see check-agent-boundaries.sh for the
+# exact matching implementation).
+
+spec-writer:
+  - "docs/features/**"
+
+architect:
+  - "docs/features/**"
+
+backend-builder:
+  - "server/**"
+  - "docs/features/**"
+
+frontend-builder:
+  - "client/**"
+  - "docs/features/**"
+
+test-engineer:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "server/test/**"
+  - "client/**/*.spec.ts"
+  - "docs/features/**"
+
+reviewer:
+  - "docs/features/**"
+
+release-engineer:
+  - "docs/features/**"
+  - "CHANGELOG.md"
+  - "migrations/**"
+
+eval-grader:
+  - "evals/results/**"
+
+# No agent, regardless of role, may touch these paths under any circumstance.
+# A violation here fails CI even if the agent's own allow-list above would
+# otherwise permit it (e.g. release-engineer's docs/features/** allowance
+# does not extend to files inside .github/ even if nested oddly).
+never:
+  - ".github/workflows/deploy-prod.yml"
+  - ".github/workflows/deploy-staging.yml"
+  - ".github/agent-boundaries.yml"
+  - "scripts/setup-github-project.sh"
+  - "docs/ops/bot-identity.md"

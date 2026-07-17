@@ -1,0 +1,76 @@
+name: Add to Project Board
+
+# The one Actions-based automation involved in ticket movement itself (blueprint §2.6). It does
+# the smallest possible thing: on a new feature issue, add it to the Projects (v2) board and set
+# Stage to Backlog. It does NOT move tickets between stages afterwards — that's the agents' job
+# (see .github/instructions/github-workflow.instructions.md).
+#
+# Credential note: this repo is solo-maintained, so we use the maintainer's own PAT stored as the
+# CHAIN_BOT_TOKEN repo secret instead of a dedicated GitHub App (see .orchestrator/docs/ops/bot-identity.md for
+# the rationale and the upgrade path if collaborators are added). The default GITHUB_TOKEN does
+# NOT have Projects v2 scope, so a secret is required regardless of App-vs-PAT.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: read
+
+env:
+  # Filled in by .orchestrator/scripts/setup-github-project.sh (see
+  # .github/instructions/github-workflow.instructions.md for the recorded values).
+  PROJECT_OWNER: "<PROJECT_OWNER>"
+  PROJECT_NUMBER: "<PROJECT_NUMBER>"
+
+jobs:
+  add-to-project:
+    # Only feature-request issues need to enter the chain.
+    if: contains(github.event.issue.labels.*.name, 'feature')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue to project
+        uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: https://github.com/users/${{ env.PROJECT_OWNER }}/projects/${{ env.PROJECT_NUMBER }}
+          github-token: ${{ secrets.CHAIN_BOT_TOKEN }}
+
+      - name: Set Stage to Backlog
+        env:
+          GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          # gh project item-edit's --project-id wants the project's GraphQL node ID, not the
+          # human-facing project number - resolve it explicitly.
+          PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json | python3 -c "import json,sys;print(json.load(sys.stdin)['id'])")
+          ITEMS_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json)
+          ITEM_ID=$(echo "$ITEMS_JSON" | python3 -c "
+          import json,sys
+          data = json.load(sys.stdin)
+          for item in data['items']:
+              content = item.get('content') or {}
+              if content.get('number') == int('$ISSUE_NUMBER'):
+                  print(item['id'])
+                  break
+          ")
+          FIELDS_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json)
+          FIELD_ID=$(echo "$FIELDS_JSON" | python3 -c "
+          import json,sys
+          data = json.load(sys.stdin)
+          for f in data['fields']:
+              if f['name'] == 'Stage':
+                  print(f['id'])
+                  break
+          ")
+          OPTION_ID=$(echo "$FIELDS_JSON" | python3 -c "
+          import json,sys
+          data = json.load(sys.stdin)
+          for f in data['fields']:
+              if f['name'] == 'Stage':
+                  for o in f['options']:
+                      if o['name'] == 'Backlog':
+                          print(o['id'])
+                  break
+          ")
+          gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" --field-id "$FIELD_ID" --single-select-option-id "$OPTION_ID"

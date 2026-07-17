@@ -1,0 +1,18 @@
+{
+  "name": "orchestrator-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local web dashboard visualizing the agentic feature chain's board (GitHub Projects v2 or Jira) and per-feature lifecycle history.",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm:dev --workspace=server\" \"npm:dev --workspace=client\"",
+    "build": "npm run build --workspace=client",
+    "start": "npm run build && node server/index.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "agent": "architect",
+    "case_id": "001",
+    "graded_at": "2026-07-10T13:51:36Z",
+    "criteria": [
+      {
+        "id": "has-component-route-schema-breakdown",
+        "verdict": "pass",
+        "justification": "The Component / route / schema breakdown section names concrete Angular components, backend services/controllers, and a new Comment collection, distinguishing new from modified items."
+      },
+      {
+        "id": "freezes-api-contract",
+        "verdict": "pass",
+        "justification": "The Frozen API contract section explicitly defines GET/POST/PATCH/DELETE comment endpoints with their request fields, response fields, and auth expectations."
+      },
+      {
+        "id": "maps-every-edge-case",
+        "verdict": "pass",
+        "justification": "The Edge-case mapping from spec table covers the spec-driven cases around pagination, soft-delete visibility, author-only mutation, membership access, blank submissions, and edits after deletion, and assigns each to a handling layer."
+      },
+      {
+        "id": "no-production-code",
+        "verdict": "pass",
+        "justification": "The document stays at design level with named components, models, and endpoint shapes and does not include handler logic or component template code."
+      },
+      {
+        "id": "does-not-resolve-open-questions-itself",
+        "verdict": "pass",
+        "justification": "It explicitly states the spec was already approved with resolved open questions and does not introduce any new human-facing product decisions beyond that frozen scope."
+      }
+    ]
+  },
+  {
+    "agent": "architect",
+    "case_id": "002",
+    "graded_at": "2026-07-10T13:51:36Z",
+    "criteria": [
+      {
+        "id": "has-component-route-schema-breakdown",
+        "verdict": "pass",
+        "justification": "The breakdown names the dashboard shell, each widget component group, the dashboard controller/query services, and the schema impact, separated into overall and sub-task-specific items."
+      },
+      {
+        "id": "freezes-api-contract",
+        "verdict": "pass",
+        "justification": "The Frozen API contract section fully specifies the shared response envelope plus concrete endpoint/request/response shapes for Sub-task A and shape-level contracts for later widget endpoints."
+      },
+      {
+        "id": "flags-oversized-work",
+        "verdict": "pass",
+        "justification": "The Session-sizing note explicitly says the dashboard is too large for one backend or frontend session and proposes a three-step sequential split sized around related widget groups."
+      },
+      {
+        "id": "no-production-code",
+        "verdict": "pass",
+        "justification": "The output contains only architectural decomposition and data contracts, with no executable route handlers, query code, or UI templates."
+      },
+      {
+        "id": "does-not-resolve-open-questions-itself",
+        "verdict": "pass",
+        "justification": "The spec status section says the approved dashboard scope is frozen and the plan does not answer new product questions on its own."
+      }
+    ]
+  }
+]

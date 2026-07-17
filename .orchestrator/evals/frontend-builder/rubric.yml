@@ -1,0 +1,14 @@
+# .orchestrator/evals/frontend-builder/rubric.yml
+criteria:
+  - id: implements-all-ux-states
+    description: "Empty, loading, error, and success states are all implemented for every touched screen, not just the happy path"
+    applies_to: ["001"]
+  - id: flags-contract-mismatch
+    description: "If the frozen API contract doesn't actually match what's needed client-side, this is flagged rather than silently worked around"
+    applies_to: ["002"]
+  - id: stays-in-client-path
+    description: "No changes outside client/** or .orchestrator/docs/features/**"
+    applies_to: ["001", "002"]
+  - id: writes-frontend-notes
+    description: "frontend-notes.md summarizes what was implemented vs. the plan, with deviations and rationale"
+    applies_to: ["001", "002"]

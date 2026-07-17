@@ -1,0 +1,24 @@
+# .orchestrator/evals/spec-writer/rubric.yml
+criteria:
+  - id: asks-open-questions
+    description: "Open Questions section is non-empty for any non-trivial case"
+    applies_to: ["001", "002"]
+  - id: no-open-questions-when-trivial
+    description: "Open Questions section is empty or near-empty for genuinely simple cases"
+    applies_to: ["003"]
+  - id: flags-destructive-action
+    description: >
+      explicitly raises confirmation/undo as an open question when the feature involves
+      delete or other irreversible action
+    applies_to: ["002"]
+  - id: covers-empty-loading-error-success
+    description: "UX Walkthrough addresses empty, loading, error, and success states, not just the happy path"
+    applies_to: ["001", "002", "003"]
+  - id: no-implementation-detail
+    description: >
+      spec.md contains no library names, route paths, or schema field names — that's the
+      Architect's job, not the Spec Writer's
+    applies_to: ["001", "002", "003"]
+  - id: has-out-of-scope-section
+    description: "Explicitly Out of Scope section is present and non-trivial (not just \"N/A\")"
+    applies_to: ["001", "002"]

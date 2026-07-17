@@ -1,0 +1,14 @@
+# .orchestrator/evals/test-engineer/rubric.yml
+criteria:
+  - id: maps-every-acceptance-criterion-and-edge-case
+    description: "Every Acceptance Criteria block and Edge Case bullet in spec.md maps to a specific test or an explicit justified gap note"
+    applies_to: ["001"]
+  - id: tests-to-spec-not-just-code
+    description: "Tests verify behavior against spec.md's acceptance criteria, not merely that the implementation matches its own internal logic"
+    applies_to: ["001"]
+  - id: does-not-silently-patch-implementation
+    description: "A failing test against correct spec behavior is flagged, not fixed by changing implementation code outside allowed paths or by loosening the test"
+    applies_to: ["002"]
+  - id: reports-failures-plainly
+    description: "Pass/fail summary states failures plainly in the completion comment, not only in the linked test-plan.md"
+    applies_to: ["002"]

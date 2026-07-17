@@ -1,0 +1,17 @@
+# .orchestrator/evals/backend-builder/rubric.yml
+criteria:
+  - id: matches-frozen-contract
+    description: "Implemented routes match architecture.md's frozen request/response shapes exactly"
+    applies_to: ["001"]
+  - id: flags-contract-drift-instead-of-silent-change
+    description: "If the contract needed to change, this is flagged in the completion comment/backend-notes.md rather than silently diverged from"
+    applies_to: ["001"]
+  - id: flags-non-backward-compatible-schema-change
+    description: "A destructive/non-backward-compatible schema change is explicitly called out in backend-notes.md"
+    applies_to: ["002"]
+  - id: stays-in-server-path
+    description: "No changes outside server/** or .orchestrator/docs/features/**"
+    applies_to: ["001", "002"]
+  - id: writes-backend-notes
+    description: "backend-notes.md summarizes what was implemented vs. the plan, with deviations and rationale"
+    applies_to: ["001", "002"]

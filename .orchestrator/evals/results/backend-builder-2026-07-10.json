@@ -1,0 +1,51 @@
+[
+  {
+    "agent": "backend-builder",
+    "case_id": "001-follows-architecture-contract",
+    "graded_at": "2026-07-10T13:51:32Z",
+    "criteria": [
+      {
+        "id": "matches-frozen-contract",
+        "verdict": "pass",
+        "justification": "The Route behavior section says the handler accepts only `{ \"body\": string }` and returns `201` with exactly `id`, `body`, `authorId`, and `createdAt` with no envelope."
+      },
+      {
+        "id": "flags-contract-drift-instead-of-silent-change",
+        "verdict": "pass",
+        "justification": "The backend-notes Deviations section explicitly says no contract deviation was introduced and that any future envelope change would require an architecture update instead of a silent backend change."
+      },
+      {
+        "id": "stays-in-server-path",
+        "verdict": "pass",
+        "justification": "The Files written list contains only `server/**` files plus `docs/features/team-comments/backend-notes.md`, with no `client/**` changes."
+      },
+      {
+        "id": "writes-backend-notes",
+        "verdict": "pass",
+        "justification": "The simulated `backend-notes.md` section summarizes what was implemented against the plan, states there were no deviations, and records the path-boundary note."
+      }
+    ]
+  },
+  {
+    "agent": "backend-builder",
+    "case_id": "002-non-backward-compatible-schema-change",
+    "graded_at": "2026-07-10T13:51:32Z",
+    "criteria": [
+      {
+        "id": "flags-non-backward-compatible-schema-change",
+        "verdict": "pass",
+        "justification": "The Compatibility / governance notes call the `Role` drop destructive and non-backward-compatible, and they require a migration that backfills existing documents from legacy `Role` values into the new enum."
+      },
+      {
+        "id": "stays-in-server-path",
+        "verdict": "pass",
+        "justification": "The Files written list is limited to `server/models/User.js`, `server/services/userRoleService.js`, and `docs/features/user-roles-rework/backend-notes.md`."
+      },
+      {
+        "id": "writes-backend-notes",
+        "verdict": "pass",
+        "justification": "The simulated `backend-notes.md` spells out what was implemented, notes there was no contract drift, and explains the migration/backfill needed for existing documents."
+      }
+    ]
+  }
+]

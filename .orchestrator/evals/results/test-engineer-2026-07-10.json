@@ -1,0 +1,36 @@
+[
+  {
+    "agent": "test-engineer",
+    "case_id": "001-full-coverage-of-acceptance-criteria",
+    "graded_at": "2026-07-10T13:50:17Z",
+    "criteria": [
+      {
+        "id": "maps-every-acceptance-criterion-and-edge-case",
+        "verdict": "pass",
+        "justification": "The simulated `test-plan.md` names a specific automated test for all 4 acceptance criteria and all 5 edge cases, and its pass/fail summary explicitly says no implicit gaps remain."
+      },
+      {
+        "id": "tests-to-spec-not-just-code",
+        "verdict": "pass",
+        "justification": "The mapped tests are stated in spec terms such as visible `[deleted]` state, unauthenticated 401 rejection, empty state, pagination at 50 comments, and oversized-body validation, rather than helper methods or other implementation internals."
+      }
+    ]
+  },
+  {
+    "agent": "test-engineer",
+    "case_id": "002-failing-test-not-silently-patched",
+    "graded_at": "2026-07-10T13:50:17Z",
+    "criteria": [
+      {
+        "id": "does-not-silently-patch-implementation",
+        "verdict": "pass",
+        "justification": "The output keeps the spec-correct assertion that deletion must leave a `[deleted]` placeholder and explicitly states that no implementation files under `server/**` or `client/**` were changed and the test was not loosened to match hard-delete behavior."
+      },
+      {
+        "id": "reports-failures-plainly",
+        "verdict": "pass",
+        "justification": "The completion comment itself says the added delete-comment test 'failed plainly' because the implementation hard-deletes the document instead of satisfying the spec's soft-delete acceptance criterion."
+      }
+    ]
+  }
+]

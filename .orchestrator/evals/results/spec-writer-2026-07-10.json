@@ -1,0 +1,83 @@
+[
+  {
+    "agent": "spec-writer",
+    "case_id": "001-underspecified-request",
+    "graded_at": "2026-07-10T13:52:09Z",
+    "criteria": [
+      {
+        "id": "asks-open-questions",
+        "verdict": "pass",
+        "justification": "Open Questions contains four unresolved product questions covering permissions, empty-state and thread scale, edit/delete behavior, and notifications rather than silently deciding them."
+      },
+      {
+        "id": "covers-empty-loading-error-success",
+        "verdict": "pass",
+        "justification": "The UX Walkthrough explicitly labels empty, loading, success, and error states for the project comments flow."
+      },
+      {
+        "id": "no-implementation-detail",
+        "verdict": "pass",
+        "justification": "The spec stays at product-behavior level and does not name libraries, route paths, schema fields, or other implementation mechanisms."
+      },
+      {
+        "id": "has-out-of-scope-section",
+        "verdict": "pass",
+        "justification": "Explicitly Out of Scope lists several concrete exclusions such as realtime presence, attachments, and moderation or notification decisions."
+      }
+    ]
+  },
+  {
+    "agent": "spec-writer",
+    "case_id": "002-destructive-action",
+    "graded_at": "2026-07-10T13:52:09Z",
+    "criteria": [
+      {
+        "id": "asks-open-questions",
+        "verdict": "pass",
+        "justification": "Open Questions remains non-empty and captures unresolved destructive-action decisions around recoverability, confirmation, audit logging, and partial completion behavior."
+      },
+      {
+        "id": "flags-destructive-action",
+        "verdict": "pass",
+        "justification": "Open Questions items 1 and 2 explicitly ask whether the delete is recoverable and whether the admin must confirm the bulk delete before it runs."
+      },
+      {
+        "id": "covers-empty-loading-error-success",
+        "verdict": "pass",
+        "justification": "The UX Walkthrough explicitly addresses the no-eligible-reports empty state plus loading, success, and error outcomes for the bulk delete flow."
+      },
+      {
+        "id": "no-implementation-detail",
+        "verdict": "pass",
+        "justification": "The spec never proposes a specific deletion mechanism or technology choice and stays focused on user-visible behavior and policy decisions."
+      },
+      {
+        "id": "has-out-of-scope-section",
+        "verdict": "pass",
+        "justification": "Explicitly Out of Scope is present and non-trivial, excluding scheduled cleanup, broader lifecycle redesign, and unrelated archive or export work."
+      }
+    ]
+  },
+  {
+    "agent": "spec-writer",
+    "case_id": "003-trivial-feature",
+    "graded_at": "2026-07-10T13:52:09Z",
+    "criteria": [
+      {
+        "id": "no-open-questions-when-trivial",
+        "verdict": "pass",
+        "justification": "Open Questions is intentionally near-empty, stating that no further product clarification is needed for this small footer-label request."
+      },
+      {
+        "id": "covers-empty-loading-error-success",
+        "verdict": "pass",
+        "justification": "The UX Walkthrough addresses empty, loading, success, and error relevance for the footer label, explicitly noting when a state is not meaningfully applicable."
+      },
+      {
+        "id": "no-implementation-detail",
+        "verdict": "pass",
+        "justification": "The spec describes the footer behavior without naming code-level file access, libraries, or other implementation details."
+      }
+    ]
+  }
+]

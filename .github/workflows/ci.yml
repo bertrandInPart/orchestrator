@@ -1,0 +1,113 @@
+name: CI
+
+# Runs on every push to a feature/** branch and on every PR. This is where the boundary
+# enforcement from .orchestrator/agent-boundaries.yml becomes a real, required check rather than a
+# stated rule (blueprint §9). Lint/test/secret-scan steps are placeholders until server/** and
+# client/** app code exists — they're wired in now so they start running the moment that code
+# lands, instead of being bolted on later.
+
+on:
+  push:
+    branches:
+      - "feature/**"
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read # gitleaks-action lists PR commits via the API
+
+jobs:
+  agent-boundaries:
+    # Only enforced for actual feature/** branches — the chain agents are the only ones bound by
+    # .orchestrator/agent-boundaries.yml's "Agent: <name>" commit-trailer requirement. Repo scaffolding,
+    # infra, and non-feature PRs (like this orchestration build-out itself) aren't part of the
+    # chain and shouldn't be required to carry an Agent trailer.
+    if: startsWith(github.head_ref || github.ref_name, 'feature/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history for commit range)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # On the pull_request event, actions/checkout defaults to the synthetic
+          # base+head test-merge commit GitHub generates for mergeability checks - not the
+          # PR's actual head commit. That synthetic commit has no "Agent:" trailer and would
+          # make every real feature PR fail here regardless of its real commits. Pin to the
+          # actual head SHA so the commit range only ever contains real, agent-authored commits.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python (for boundary-check glob matching)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Check agent boundaries
+        run: |
+          BASE_REF="origin/${{ github.event.pull_request.base.ref || 'develop' }}"
+          git fetch origin "${{ github.event.pull_request.base.ref || 'develop' }}" --depth=1000 || true
+          ./.orchestrator/scripts/check-agent-boundaries.sh "$BASE_REF" "${{ github.event.pull_request.head.sha || github.sha }}"
+
+  eval-gate:
+    # Wires .orchestrator/evals/** into a required check (blueprint's eval-loop section). A GitHub Actions job
+    # cannot invoke a chatmode and capture its output - that needs a real Copilot agent session -
+    # so this does not try to run the evals itself. It enforces the mechanical half instead: the
+    # eval fixtures stay internally consistent, and any PR touching a chatmode/skill/instructions
+    # file (or an agent's own eval fixtures) must include fresh graded evidence from
+    # .orchestrator/evals/results/<agent>-*.json in the same diff. See .orchestrator/scripts/check-eval-freshness.py and
+    # .orchestrator/evals/README.md for what "fresh evidence" means and how to produce it.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history for diff range)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Check eval fixture structure and freshness
+        run: |
+          BASE_REF="origin/${{ github.event.pull_request.base.ref || 'develop' }}"
+          git fetch origin "${{ github.event.pull_request.base.ref || 'develop' }}" --depth=1000 || true
+          python .orchestrator/scripts/check-eval-freshness.py "$BASE_REF" "${{ github.event.pull_request.head.sha || github.sha }}"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Lint (placeholder)
+        run: |
+          echo "No app code yet under server/** or client/** - nothing to lint."
+          echo "Once package.json files exist, replace this step with the real lint command(s)."
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Test (placeholder)
+        run: |
+          echo "No app code yet under server/** or client/** - nothing to test."
+          echo "Once package.json files exist, replace this step with the real test command(s)."
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Scan for secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

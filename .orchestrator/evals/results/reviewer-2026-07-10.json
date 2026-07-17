@@ -1,0 +1,46 @@
+[
+  {
+    "agent": "reviewer",
+    "case_id": "001-pii-flagged",
+    "graded_at": "2026-07-10T13:52:29Z",
+    "criteria": [
+      {
+        "id": "cites-specific-pii-rule",
+        "verdict": "pass",
+        "justification": "R1 is explicitly marked FAIL and cites `security.instructions.md` rule R1, naming `User.phoneNumber` / `PATCH /api/users/:id/phone` and requiring named human PR sign-off before merge."
+      },
+      {
+        "id": "does-not-self-approve",
+        "verdict": "pass",
+        "justification": "The Reviewer scope note says the review is advisory context for the human reviewer and CI and does not merge or approve the PR."
+      },
+      {
+        "id": "gives-per-rule-verdict",
+        "verdict": "pass",
+        "justification": "The Governance rule verdicts section gives an explicit verdict for every rule R1 through R6 rather than a single overall judgment."
+      }
+    ]
+  },
+  {
+    "agent": "reviewer",
+    "case_id": "002-destructive-migration-blocking",
+    "graded_at": "2026-07-10T13:52:29Z",
+    "criteria": [
+      {
+        "id": "flags-non-backward-compatible-migration",
+        "verdict": "pass",
+        "justification": "R4 is explicitly marked FAIL as a blocking issue and names the missing required artifact as a migration under `migrations/`, while rejecting \"no longer used\" as sufficient rationale."
+      },
+      {
+        "id": "does-not-self-approve",
+        "verdict": "pass",
+        "justification": "The Reviewer scope note says the review is advisory context for the human reviewer and CI and does not merge or approve the PR."
+      },
+      {
+        "id": "gives-per-rule-verdict",
+        "verdict": "pass",
+        "justification": "The Governance rule verdicts section gives an explicit verdict for every rule R1 through R6 rather than a single overall judgment."
+      }
+    ]
+  }
+]

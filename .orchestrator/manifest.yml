@@ -1,0 +1,205 @@
+# .orchestrator/manifest.yml
+#
+# The packaging manifest read by .orchestrator/scripts/install.py. It's the full list of files
+# this template ships, each tagged with how the installer should treat a conflict with a file
+# that already exists at that path in the project being adopted into — this is what makes install
+# safe to run against an "already industrialized" project that has its own CI, its own
+# `.github/copilot-instructions.md`, its own issue templates, etc., instead of a blank repo.
+#
+# category: core        — the chain's own logic (chatmodes/skills/instructions/scripts/evals).
+#                          An adopting project is not expected to already have a file at this
+#                          path; if it somehow does, or if a later `install.py --update` finds the
+#                          file has been hand-edited since install, the installer never overwrites
+#                          it silently — it writes the incoming version alongside as
+#                          `<name>.orchestrator-suggested<ext>` and flags it for manual review.
+# category: integration  — files that commonly already exist in a real project (CI workflows,
+#                          repo-wide Copilot instructions, an issue template) and where a
+#                          wholesale overwrite would very likely destroy existing project setup.
+#                          Same non-destructive rule as `core`, but the installer's summary calls
+#                          these out explicitly as "needs manual merge," since the expected action
+#                          isn't just "review, probably fine" but "combine the two by hand."
+# category: seed         — starter/append-only files (empty memory logs, telemetry, baseline eval
+#                          results) that a project is expected to grow on its own after adoption.
+#                          Created only if missing; never flagged as a conflict, never
+#                          auto-updated, even if unmodified.
+
+files:
+  # --- chatmodes (core) ---
+  - path: .github/chatmodes/architect.chatmode.md
+    category: core
+  - path: .github/chatmodes/backend-builder.chatmode.md
+    category: core
+  - path: .github/chatmodes/eval-grader.chatmode.md
+    category: core
+  - path: .github/chatmodes/frontend-builder.chatmode.md
+    category: core
+  - path: .github/chatmodes/release-engineer.chatmode.md
+    category: core
+  - path: .github/chatmodes/reviewer.chatmode.md
+    category: core
+  - path: .github/chatmodes/spec-writer.chatmode.md
+    category: core
+  - path: .github/chatmodes/test-engineer.chatmode.md
+    category: core
+
+  # --- instructions (core) ---
+  - path: .github/instructions/backend.instructions.md
+    category: core
+  - path: .github/instructions/data.instructions.md
+    category: core
+  - path: .github/instructions/dor-dod-definitions.md
+    category: core
+  - path: .github/instructions/frontend.instructions.md
+    category: core
+  - path: .github/instructions/github-workflow.instructions.md
+    category: core
+  - path: .github/instructions/security.instructions.md
+    category: core
+  - path: .github/instructions/testing.instructions.md
+    category: core
+
+  # --- prompts (core) ---
+  - path: .github/prompts/fix-review-comments.prompt.md
+    category: core
+  - path: .github/prompts/new-feature.prompt.md
+    category: core
+
+  # --- repo-wide instructions / issue intake / workflows (integration - likely to already exist) ---
+  - path: .github/copilot-instructions.md
+    category: integration
+  - path: .github/ISSUE_TEMPLATE/feature-request.yml
+    category: integration
+  - path: .github/workflows/add-to-project.yml
+    category: integration
+  - path: .github/workflows/chain-health.yml
+    category: integration
+  - path: .github/workflows/ci.yml
+    category: integration
+  - path: .github/workflows/copilot-setup-steps.yml
+    category: integration
+  - path: .github/workflows/deploy-prod.yml
+    category: integration
+  - path: .github/workflows/deploy-staging.yml
+    category: integration
+  - path: .github/workflows/telemetry-rollup.yml
+    category: integration
+
+  # --- .orchestrator/ core mechanics ---
+  - path: .orchestrator/README.md
+    category: core
+  - path: .orchestrator/agent-boundaries.yml
+    category: core
+  - path: .orchestrator/automations/README.md
+    category: core
+  - path: .orchestrator/skills/README.md
+    category: core
+  - path: .orchestrator/skills/commit-and-handoff.skill.md
+    category: core
+  - path: .orchestrator/skills/context-scope.skill.md
+    category: core
+  - path: .orchestrator/skills/dod-check.skill.md
+    category: core
+  - path: .orchestrator/skills/dor-check.skill.md
+    category: core
+  - path: .orchestrator/skills/drift-check.skill.md
+    category: core
+  - path: .orchestrator/skills/lifecycle-file.skill.md
+    category: core
+  - path: .orchestrator/skills/on-start-checks.skill.md
+    category: core
+  - path: .orchestrator/skills/ticket-comments.skill.md
+    category: core
+  - path: .orchestrator/scripts/check-agent-boundaries.sh
+    category: core
+  - path: .orchestrator/scripts/check-eval-freshness.py
+    category: core
+  - path: .orchestrator/scripts/init-wizard.py
+    category: core
+  - path: .orchestrator/scripts/install.py
+    category: core
+  - path: .orchestrator/scripts/log-agent-run.sh
+    category: core
+  - path: .orchestrator/scripts/run-agent-evals.sh
+    category: core
+  - path: .orchestrator/scripts/setup-github-project.sh
+    category: core
+  - path: .orchestrator/scripts/telemetry-rollup.py
+    category: core
+  - path: .orchestrator/scripts/update-ticket-stage.sh
+    category: core
+  - path: .orchestrator/docs/ops/bot-identity.md
+    category: core
+  - path: .orchestrator/docs/ops/telemetry-rollup.md
+    category: core
+  - path: .orchestrator/docs/jira-integration.md
+    category: core
+
+  # --- evals: chain's own regression harness (core) ---
+  - path: .orchestrator/evals/README.md
+    category: core
+  - path: .orchestrator/evals/architect/rubric.yml
+    category: core
+  - path: .orchestrator/evals/architect/cases/001-standard-crud-feature.md
+    category: core
+  - path: .orchestrator/evals/architect/cases/002-oversized-feature.md
+    category: core
+  - path: .orchestrator/evals/backend-builder/rubric.yml
+    category: core
+  - path: .orchestrator/evals/backend-builder/cases/001-follows-architecture-contract.md
+    category: core
+  - path: .orchestrator/evals/backend-builder/cases/002-non-backward-compatible-schema-change.md
+    category: core
+  - path: .orchestrator/evals/frontend-builder/rubric.yml
+    category: core
+  - path: .orchestrator/evals/frontend-builder/cases/001-implements-all-ux-states.md
+    category: core
+  - path: .orchestrator/evals/frontend-builder/cases/002-contract-mismatch.md
+    category: core
+  - path: .orchestrator/evals/release-engineer/rubric.yml
+    category: core
+  - path: .orchestrator/evals/release-engineer/cases/001-pr-description-synthesis.md
+    category: core
+  - path: .orchestrator/evals/release-engineer/cases/002-no-prod-deploy-bypass.md
+    category: core
+  - path: .orchestrator/evals/reviewer/rubric.yml
+    category: core
+  - path: .orchestrator/evals/reviewer/cases/001-pii-flagged.md
+    category: core
+  - path: .orchestrator/evals/reviewer/cases/002-destructive-migration-blocking.md
+    category: core
+  - path: .orchestrator/evals/spec-writer/rubric.yml
+    category: core
+  - path: .orchestrator/evals/spec-writer/cases/001-underspecified-request.md
+    category: core
+  - path: .orchestrator/evals/spec-writer/cases/002-destructive-action.md
+    category: core
+  - path: .orchestrator/evals/spec-writer/cases/003-trivial-feature.md
+    category: core
+  - path: .orchestrator/evals/test-engineer/rubric.yml
+    category: core
+  - path: .orchestrator/evals/test-engineer/cases/001-full-coverage-of-acceptance-criteria.md
+    category: core
+  - path: .orchestrator/evals/test-engineer/cases/002-failing-test-not-silently-patched.md
+    category: core
+
+  # --- seed / grows-on-its-own after adoption ---
+  - path: .orchestrator/docs/memory/conventions.memory.md
+    category: seed
+  - path: .orchestrator/docs/memory/decisions.memory.md
+    category: seed
+  - path: .orchestrator/docs/ops/agent-telemetry.jsonl
+    category: seed
+  - path: .orchestrator/evals/results/architect-2026-07-10.json
+    category: seed
+  - path: .orchestrator/evals/results/backend-builder-2026-07-10.json
+    category: seed
+  - path: .orchestrator/evals/results/frontend-builder-2026-07-10.json
+    category: seed
+  - path: .orchestrator/evals/results/release-engineer-2026-07-10.json
+    category: seed
+  - path: .orchestrator/evals/results/reviewer-2026-07-10.json
+    category: seed
+  - path: .orchestrator/evals/results/spec-writer-2026-07-10.json
+    category: seed
+  - path: .orchestrator/evals/results/test-engineer-2026-07-10.json
+    category: seed

@@ -1,0 +1,32 @@
+name: Deploy — Production
+
+# PLACEHOLDER, gated behind a manual-approval GitHub Environment ("production"). Real deploy steps
+# depend on app code that doesn't exist yet. No agent in .github/chatmodes/ may modify this file
+# or bypass the approval gate — enforced both by the `never` list in .orchestrator/agent-boundaries.yml
+# and by this being a required reviewer on the "production" environment itself (configure that
+# environment's required reviewers in repo Settings → Environments once this is real).
+#
+# Per blueprint §8 checkpoint #3: merging the PR (after human review) is what triggers this; the
+# environment's manual-approval gate is a second, independent human checkpoint before anything
+# actually reaches production.
+
+on:
+  # This repo's trunk is `develop` (no `main` branch) - production promotion is a deliberate,
+  # manually-triggered action rather than an automatic push trigger, since there's no separate
+  # release branch to push to. Combined with the "production" environment's required reviewers,
+  # this gives two independent human gates before anything reaches production.
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production # configure required reviewers on this environment in repo settings
+    steps:
+      - uses: actions/checkout@v5
+      - name: Deploy to production (placeholder)
+        run: |
+          echo "TODO: once server/** and client/** exist, build and deploy them to production here."
+          echo "This step intentionally does nothing yet."
