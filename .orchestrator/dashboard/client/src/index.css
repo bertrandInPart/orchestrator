@@ -23,11 +23,44 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.25rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .toolbar h1 {
   font-size: 1.25rem;
   margin: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.last-updated {
+  font-size: 0.78rem;
+  color: #777;
+  white-space: nowrap;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.board-search {
+  width: 100%;
+  max-width: 360px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 button {
@@ -94,13 +127,17 @@ button:disabled {
   border-radius: 6px;
   padding: 0.6rem 0.7rem;
   margin-bottom: 0.6rem;
-  text-decoration: none;
-  color: inherit;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .feature-card:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 .feature-title {
@@ -218,4 +255,55 @@ button:disabled {
 .empty {
   color: #777;
   font-size: 0.9rem;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e4e6ea 25%, #eef0f3 37%, #e4e6ea 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text {
+  height: 0.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.skeleton-card {
+  background: white;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .app {
+    padding: 1rem;
+  }
+
+  .board {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .board-column {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .detail-columns {
+    grid-template-columns: 1fr;
+  }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchFeature } from "../api";
 import type { FeatureDetailResponse } from "../types";
+import { RelativeTime } from "../RelativeTime";
 
 function formatDuration(seconds: number | null): string {
   if (seconds === null) return "n/a";
@@ -23,12 +24,14 @@ export function FeatureDetailView() {
   const [data, setData] = useState<FeatureDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   async function load() {
     setLoading(true);
     setError(null);
     try {
       setData(await fetchFeature(slug));
+      setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -48,12 +51,21 @@ export function FeatureDetailView() {
           <Link to="/">← Back to board</Link>
           <h1>{slug}</h1>
         </div>
-        <button type="button" onClick={load} disabled={loading}>
-          {loading ? "Refreshing…" : "Refresh"}
-        </button>
+        <div className="toolbar-actions">
+          {lastUpdated && <RelativeTime date={lastUpdated} />}
+          <button type="button" onClick={load} disabled={loading}>
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      <div role="status" aria-live="polite" className="visually-hidden">
+        {loading ? "Refreshing feature detail…" : lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : ""}
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+
+      {!data && loading && <DetailSkeleton />}
 
       {data && (
         <div className="detail-columns">
@@ -135,6 +147,26 @@ export function FeatureDetailView() {
           </section>
         </div>
       )}
+    </div>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="detail-columns" aria-hidden="true">
+      {[0, 1].map((col) => (
+        <section key={col}>
+          <div className="skeleton skeleton-text" style={{ width: "40%", height: "1.2rem" }} />
+          <ol className="timeline">
+            {[0, 1, 2].map((row) => (
+              <li key={row}>
+                <div className="skeleton skeleton-text" style={{ width: "70%" }} />
+                <div className="skeleton skeleton-text" style={{ width: "50%" }} />
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
     </div>
   );
 }
