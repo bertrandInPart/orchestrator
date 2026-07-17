@@ -37,7 +37,7 @@ async function githubRequest(url, { method = "GET", body } = {}) {
       "Content-Type": "application/json",
       "X-GitHub-Api-Version": "2022-11-28",
     },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -157,21 +157,41 @@ export async function listFeatures(config) {
   return features;
 }
 
+// Fallback slug shape used by listFeatures() when a project item has no
+// "Feature Slug" field value set (`issue-<number>`) — lets us resolve
+// straight to an issue number without paying for a full board scan.
+const FALLBACK_SLUG_RE = /^issue-(\d+)$/;
+
+/**
+ * Resolves a feature slug to its GitHub issue number as cheaply as
+ * possible. The common case (no custom "Feature Slug" field value) already
+ * encodes the issue number in the slug itself, so we can skip the paginated
+ * Projects v2 GraphQL scan entirely; only a genuinely custom slug value
+ * requires falling back to listFeatures() to look it up.
+ */
+async function resolveIssueNumber(config, slug) {
+  const fallbackMatch = slug.match(FALLBACK_SLUG_RE);
+  if (fallbackMatch) return fallbackMatch[1];
+
+  const features = await listFeatures(config);
+  const feature = features.find((f) => f.slug === slug);
+  if (!feature) {
+    throw new Error(`No GitHub issue found on the board for feature slug "${slug}".`);
+  }
+  return feature.ticketId;
+}
+
 /**
  * Fetches and parses the comment activity feed for one feature's issue,
  * extracting the `<!-- meta: ... -->` convention documented in
  * .orchestrator/skills/ticket-comments.skill.md.
  */
 export async function getFeatureComments(config, slug) {
-  const features = await listFeatures(config);
-  const feature = features.find((f) => f.slug === slug);
-  if (!feature) {
-    throw new Error(`No GitHub issue found on the board for feature slug "${slug}".`);
-  }
+  const issueNumber = await resolveIssueNumber(config, slug);
 
   const { owner, repo } = config.github;
   const comments = await githubRequest(
-    `${GITHUB_API}/repos/${owner}/${repo}/issues/${feature.ticketId}/comments?per_page=100`
+    `${GITHUB_API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?per_page=100`
   );
 
   return comments.map((c) => {
