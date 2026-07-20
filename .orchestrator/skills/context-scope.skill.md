@@ -9,10 +9,10 @@ read — and calls out what NOT to read even if it's tempting.
 
 | Agent | Read | Do NOT read |
 |---|---|---|
-| **spec-writer** | The raw request or issue thread; `.orchestrator/docs/memory/conventions.memory.md`; **targeted** reads of existing `server/**`/`client/**` code in this feature's specific domain (see "Grounding spec-writer's context" below) | Full architecture.md/code of *unrelated* features, or a broad codebase tour — you're verifying facts about the area this request touches, not researching implementation options |
+| **spec-writer** | The raw request or issue thread; `.orchestrator/docs/memory/conventions.memory.md`; **targeted** reads of existing `{{backend.path}}/**`/`{{frontend.path}}/**` code in this feature's specific domain (see "Grounding spec-writer's context" below) | Full architecture.md/code of *unrelated* features, or a broad codebase tour — you're verifying facts about the area this request touches, not researching implementation options |
 | **architect** | `spec.md` in full; the issue thread's human answers; the *relevant section(s)* of `.orchestrator/docs/memory/decisions.memory.md` (see "Large shared files" below) | Other features' `spec.md`/`architecture.md` unless `decisions.memory.md` explicitly points you at one as precedent |
-| **backend-builder** | `architecture.md` (API contract + your components); `.github/instructions/backend.instructions.md`; `.github/instructions/data.instructions.md` | Anything under `client/**`; other features' notes files |
-| **frontend-builder** | `architecture.md` (API contract + your components); `.github/instructions/frontend.instructions.md` | Anything under `server/**` or schema files; other features' notes files |
+| **backend-builder** | `architecture.md` (API contract + your components); `.github/instructions/backend.instructions.md`; `.github/instructions/data.instructions.md` | Anything under `{{frontend.path}}/**`; other features' notes files |
+| **frontend-builder** | `architecture.md` (API contract + your components); `.github/instructions/frontend.instructions.md` | Anything under `{{backend.path}}/**` or schema files; other features' notes files |
 | **test-engineer** | `spec.md` (acceptance criteria + edge cases); `architecture.md`; `backend-notes.md`; `frontend-notes.md`; `.github/instructions/testing.instructions.md` | Implementation source files beyond what's needed to understand the public surface you're testing against — test to spec, not to internals |
 | **reviewer** | The full diff on the feature branch; `.github/instructions/security.instructions.md` | Other open features' diffs — review this feature's diff only |
 | **release-engineer** | Everything in `.orchestrator/docs/features/<slug>/` (all of it — you're the one stage whose job is genuine end-to-end synthesis) | Other features' `.orchestrator/docs/features/<other-slug>/` directories |
@@ -49,7 +49,7 @@ one fact from it.
 Spec Writer's "don't read other features' code" rule (above) is about not *designing* off
 implementation precedent — it is not license to write a spec against a mental model of the app
 that's stale or simply wrong. If a feature request touches an area of the app that already has
-code (`server/**`, `client/**`), a spec that gets the *current* behavior wrong is worse than one
+code (`{{backend.path}}/**`, `{{frontend.path}}/**`), a spec that gets the *current* behavior wrong is worse than one
 with an open question, because it looks confident while being incorrect.
 
 The distinction that keeps this from turning into implementation-detail creep:

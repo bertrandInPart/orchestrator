@@ -37,8 +37,8 @@ chatmode.
 
 ## Stack (once app code exists)
 
-- Backend: Node.js / Express, under `server/**`.
-- Frontend: Angular, under `client/**`.
+- Backend: Node.js / Express, under `{{backend.path}}/**`.
+- Frontend: Angular, under `{{frontend.path}}/**`.
 - Database: MongoDB Atlas (Mongoose), schema/migration concerns under `data.instructions.md`.
 
 ## Where things live

@@ -34,7 +34,7 @@ reviewed for:
 ### R4 — Schema migration safety
 Per `data.instructions.md`: any destructive field drop, type change, or new required field without
 a default on an existing MongoDB Atlas collection must have a documented migration path under
-`migrations/`. Absence of one is a blocking issue, not a suggestion.
+`{{migrations.path}}/`. Absence of one is a blocking issue, not a suggestion.
 
 ### R5 — Dependency risk
 Any new third-party dependency introduced by `backend-builder` or `frontend-builder` should be
@@ -43,7 +43,7 @@ that duplicates functionality already available in the codebase, or that hasn't 
 
 ### R6 — Path boundaries (second layer)
 The Reviewer independently checks that the diff stays within each prior agent's stated write
-paths (`server/**` for Backend Builder, `client/**` for Frontend Builder, test paths for Test
+paths (`{{backend.path}}/**` for Backend Builder, `{{frontend.path}}/**` for Frontend Builder, test paths for Test
 Engineer). This is a second, human-readable layer behind the CI-enforced check in
 `.orchestrator/scripts/check-agent-boundaries.sh` — not a replacement for it.
 

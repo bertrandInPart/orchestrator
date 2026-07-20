@@ -60,7 +60,7 @@ front, scoped narrowly per `context-scope.skill.md`'s "Grounding spec-writer's c
    (entity names, route/page names, an existing feature slug it extends). If it's genuinely new
    ground with no plausible connection to anything existing, say so and skip to step 4.
 2. **Check for existing code in that domain.** Targeted grep/glob only — the specific
-   entity/route/component names from step 1, under `server/**` and `client/**`. Do not tour the
+   entity/route/component names from step 1, under `{{backend.path}}/**` and `{{frontend.path}}/**`. Do not tour the
    codebase and do not read other unrelated features' code.
    - **Nothing found:** this is greenfield for this domain. Note that explicitly (this matters —
      it means there's no existing behavior to contradict, and it's a normal, expected outcome for

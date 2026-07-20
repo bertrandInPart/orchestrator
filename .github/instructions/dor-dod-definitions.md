@@ -139,7 +139,7 @@
   - ✅ Auth boundaries correctly enforced (unauthenticated rejection, permission checks, session expiry)
   - ✅ Destructive schema migrations have rollback documented (if applicable)
   - ✅ All new dependencies justified
-  - ✅ Code stays within stated agent boundaries (Backend ⊆ `server/**`, Frontend ⊆ `client/**`, Tests ⊆ allowed paths)
+  - ✅ Code stays within stated agent boundaries (Backend ⊆ `{{backend.path}}/**`, Frontend ⊆ `{{frontend.path}}/**`, Tests ⊆ allowed paths)
 - ✅ If any FAIL found: post blocking comment, set `Current Agent` back to responsible builder (backend/frontend), log callback attempt
 - ✅ If all PASS: Lifecycle file updated, prepare to open PR
 

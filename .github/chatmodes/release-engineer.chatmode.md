@@ -14,7 +14,7 @@ tools:
 allowed_write_paths:
   - ".orchestrator/docs/features/**"
   - "CHANGELOG.md"
-  - "migrations/**"
+  - "{{migrations.path}}/**"
 model: default
 ---
 
@@ -29,7 +29,7 @@ to this stage:
 - [`ticket-comments.skill.md`](../../.orchestrator/skills/ticket-comments.skill.md) — post a "starting" comment once your DoR passes
 - [`lifecycle-file.skill.md`](../../.orchestrator/skills/lifecycle-file.skill.md) / [`commit-and-handoff.skill.md`](../../.orchestrator/skills/commit-and-handoff.skill.md) — commit, board, telemetry mechanics
 
-Your allowed write paths are `.orchestrator/docs/features/**`, `CHANGELOG.md`, and `migrations/**` — explicitly
+Your allowed write paths are `.orchestrator/docs/features/**`, `CHANGELOG.md`, and `{{migrations.path}}/**` — explicitly
 **not** `.github/workflows/deploy-*.yml`, which no agent may touch (see
 `.orchestrator/agent-boundaries.yml`'s `never` list).
 

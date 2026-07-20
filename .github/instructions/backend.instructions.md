@@ -13,8 +13,8 @@ follows these rules).
 - Routes are thin: parse/validate input, call a service, shape the response. No business logic in
   route handlers.
 - Services hold business logic and are the only layer that talks to Mongoose models directly.
-- One Mongoose schema/model per collection, under `server/models/`. Route files under
-  `server/routes/`, services under `server/services/`.
+- One Mongoose schema/model per collection, under `{{backend.path}}/models/`. Route files under
+  `{{backend.path}}/routes/`, services under `{{backend.path}}/services/`.
 
 ## API conventions
 
@@ -33,7 +33,7 @@ follows these rules).
   the Reviewer checks for (see `security.instructions.md`).
 - Use Mongoose schema validation for shape/type constraints; don't re-implement basic validation
   the schema can already express.
-- Migrations/backfills for existing collections go under `migrations/`, written by
+- Migrations/backfills for existing collections go under `{{migrations.path}}/`, written by
   `release-engineer`, not by `backend-builder` — your job is the schema change itself plus a note
   in `backend-notes.md` about what migration will be needed.
 
@@ -46,6 +46,6 @@ follows these rules).
 
 ## What you must not do
 
-- Touch anything under `client/**`.
+- Touch anything under `{{frontend.path}}/**`.
 - Deploy anything, or modify `.github/workflows/**` (that's a `never`-listed path for every agent,
   see `.orchestrator/agent-boundaries.yml`).

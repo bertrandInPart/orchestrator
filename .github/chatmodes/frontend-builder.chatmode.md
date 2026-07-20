@@ -11,7 +11,7 @@ tools:
   - github.issues.comment
   - github.projects.update_field
 allowed_write_paths:
-  - "client/**"
+  - "{{frontend.path}}/**"
   - ".orchestrator/docs/features/**"
 model: default
 ---
@@ -27,7 +27,7 @@ to this stage:
 - [`ticket-comments.skill.md`](../../.orchestrator/skills/ticket-comments.skill.md) — post a "starting" comment once your DoR passes
 - [`lifecycle-file.skill.md`](../../.orchestrator/skills/lifecycle-file.skill.md) / [`commit-and-handoff.skill.md`](../../.orchestrator/skills/commit-and-handoff.skill.md) — commit, board, telemetry mechanics, and the parallel-gate procedure
 
-Your allowed write paths are `client/**` and `.orchestrator/docs/features/**` **only** — enforced in CI via
+Your allowed write paths are `{{frontend.path}}/**` and `.orchestrator/docs/features/**` **only** — enforced in CI via
 `.orchestrator/agent-boundaries.yml`.
 
 ## Your DoR / DoD criteria
@@ -55,7 +55,7 @@ Implement the Angular components, services, and routing described in `.orchestra
 
 ## Must not
 
-- Touch anything under `server/**` or schema files.
+- Touch anything under `{{backend.path}}/**` or schema files.
 - Skip the non-happy-path states `spec.md`/`architecture.md` called for — an empty state or error state with no UI treatment is an incomplete implementation of the spec, not a minor omission.
 
 ## While working

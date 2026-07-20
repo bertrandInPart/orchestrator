@@ -24,16 +24,51 @@ you want to see what it would do before it writes anything. Re-run later with `-
 newer version — anything you haven't modified since install is refreshed automatically; anything
 you have is left alone and flagged as a conflict, same as a fresh install.
 
+**Vendoring as a git submodule.** If you're keeping several sibling repos (e.g. a backend repo and
+a frontend repo for the same product) in sync with this package, `--source` already accepts a
+local directory, so the recommended setup is to add this repo as a pinned git submodule inside
+each consuming repo (e.g. at `.orchestrator-src/`) rather than fetching from GitHub each time:
+
+```bash
+git submodule add https://github.com/<OWNER>/<REPO>.git .orchestrator-src
+git submodule update --init
+python .orchestrator/scripts/install.py --source .orchestrator-src
+```
+
+To sync later: `git -C .orchestrator-src fetch && git -C .orchestrator-src checkout <ref>` (or
+`git submodule update --remote` if tracking a branch), then re-run `install.py --update --source
+.orchestrator-src`. Because the shared chatmodes/instructions/skills/`agent-boundaries.yml` no
+longer bake this project's literal paths into their text (see "Path placeholders" below), a normal
+`--update` pull should apply cleanly instead of flagging every one of them as a conflict every time
+upstream changes — the only files still expected to conflict on update are ones you've genuinely
+customized beyond what `init-wizard.py` did for you.
+
+**Path placeholders.** The `core`-category chatmodes/instructions/skills and
+`agent-boundaries.yml` reference `{{backend.path}}`, `{{frontend.path}}`, and
+`{{migrations.path}}` instead of a literal directory name, so the exact same file content is valid
+for any consuming project. Chatmodes/instructions/skills are read by the agent itself, which
+resolves a placeholder against this project's own `.orchestrator/config.yml` (`backend.path` /
+`frontend.path` / `database.migrations_path`) the same way it would resolve any other reference to
+that file. `agent-boundaries.yml` is consumed by a script instead of an agent, so
+`check-agent-boundaries.sh` resolves its placeholders programmatically against `config.yml` at
+check time — see that script for exactly how a repo-root path (`"."`) or a disabled/not-applicable
+side of the stack is handled. The only literal, per-project paths left after `init-wizard.py` runs
+are the `applyTo:` frontmatter line in each `.github/instructions/*.instructions.md` file (matched
+natively by Copilot's own instructions-attachment engine, which has no placeholder-resolution hook)
+and the path mentions inside the example `.github/workflows/*.yml` deploy steps' comments.
+
 **2. Adapt.** Run `python .orchestrator/scripts/init-wizard.py` next. It analyzes the project's
 language/framework/paths, asks you to confirm or override its guesses, asks whether ticket
 tracking runs on GitHub Issues + Projects or Jira, and a short list of other first-run parameters
 (which chain stages to enable, human-checkpoint stages, circuit-breaker threshold, deploy targets,
-bot commit identity) — then rewrites the paths/stack-vocabulary baked into the chatmodes,
-instructions, and `agent-boundaries.yml` accordingly, and records every decision in
-`.orchestrator/config.yml`. See the script's own docstring for exactly what it does and does not
-automate. **If you choose Jira**, this adopts your project's *existing* workflow as-is — no new
-custom fields, no admin permissions required — see `.orchestrator/docs/jira-integration.md` for
-exactly how chain state maps onto fields your Jira project already has.
+bot commit identity) — then rewrites the `applyTo:` frontmatter and workflow-comment paths plus the
+stack-vocabulary wording baked into the chatmodes and instructions accordingly, and records every
+decision (including `backend.path`/`frontend.path`/`database.migrations_path`, which is what the
+placeholders above resolve against at read/check time) in `.orchestrator/config.yml`. See the
+script's own docstring for exactly what it does and does not automate. **If you choose Jira**,
+this adopts your project's *existing* workflow as-is — no new custom fields, no admin permissions
+required — see `.orchestrator/docs/jira-integration.md` for exactly how chain state maps onto
+fields your Jira project already has.
 
 Everything the agentic feature-production chain needs to operate, in one place, **except** the
 handful of files GitHub and Copilot require to live at fixed paths for their own tooling to find

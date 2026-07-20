@@ -21,6 +21,7 @@
 set -euo pipefail
 
 BOUNDARIES_FILE=".orchestrator/agent-boundaries.yml"
+CONFIG_FILE=".orchestrator/config.yml"
 
 if [[ $# -lt 2 ]]; then
   echo "Usage: $0 <base-ref> <head-ref>" >&2
@@ -40,7 +41,7 @@ fi
 
 # python3 is used for YAML parsing + glob matching (fnmatch handles ** better
 # than bash's built-in globbing does for matching against arbitrary strings).
-python3 - "$BOUNDARIES_FILE" "$BASE_REF" "$HEAD_REF" <<'PYEOF'
+python3 - "$BOUNDARIES_FILE" "$CONFIG_FILE" "$BASE_REF" "$HEAD_REF" <<'PYEOF'
 import subprocess
 import sys
 import re
@@ -52,10 +53,78 @@ except ImportError:
     print("ERROR: PyYAML is required (pip install pyyaml --break-system-packages).", file=sys.stderr)
     sys.exit(1)
 
-boundaries_file, base_ref, head_ref = sys.argv[1], sys.argv[2], sys.argv[3]
+boundaries_file, config_file, base_ref, head_ref = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+
+# agent-boundaries.yml ships generic/unmodified from the orchestrator template
+# (or submodule) and uses `{{backend.path}}` / `{{frontend.path}}` /
+# `{{migrations.path}}` placeholders instead of baking this project's literal
+# directory layout into a file that would otherwise need per-project edits.
+# Resolve those placeholders against this project's own config.yml before
+# parsing the boundaries as YAML, so one generic boundaries file works for
+# any consuming repo.
+UNRESOLVED = "__unresolved__"
+NOT_APPLICABLE_VALUES = {"", "n/a", "na", "none", "null"}
+
+
+def normalize_configured_path(value: str, enabled: bool = True) -> str:
+    """Turn a config.yml path value into something safe to splice into a glob.
+
+    - A disabled side of the stack (or an empty/"N/A"-style placeholder value,
+      e.g. a repo with no migrations) must never resolve to a pattern that
+      matches real files, so it maps to a sentinel directory name instead.
+    - "." (this side of the stack *is* the repo root, e.g. a backend-only repo)
+      must resolve to "" so "{{backend.path}}/**" becomes "**", not "./**"
+      (which — see matches_any below — would otherwise never match anything).
+    """
+    value = (value or "").strip()
+    if not enabled or value.lower() in NOT_APPLICABLE_VALUES:
+        return UNRESOLVED
+    if value in (".", "./"):
+        return ""
+    return value.rstrip("/")
+
+
+def load_path_placeholders(path: str) -> dict[str, str]:
+    try:
+        with open(path) as f:
+            cfg = yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        print(f"WARNING: {path} not found — leaving path placeholders unresolved.", file=sys.stderr)
+        return {}
+    backend_cfg = cfg.get("backend") or {}
+    frontend_cfg = cfg.get("frontend") or {}
+    database_cfg = cfg.get("database") or {}
+    return {
+        "{{backend.path}}": normalize_configured_path(
+            backend_cfg.get("path", ""), backend_cfg.get("enabled", True)
+        ),
+        "{{frontend.path}}": normalize_configured_path(
+            frontend_cfg.get("path", ""), frontend_cfg.get("enabled", True)
+        ),
+        "{{migrations.path}}": normalize_configured_path(database_cfg.get("migrations_path", "")),
+    }
+
+placeholders = load_path_placeholders(config_file)
 
 with open(boundaries_file) as f:
-    boundaries = yaml.safe_load(f)
+    boundaries_text = f.read()
+
+for token, value in placeholders.items():
+    # Every occurrence in agent-boundaries.yml is written as "{{token}}/..."
+    # (the placeholder is always the directory itself, never a bare file). If
+    # the resolved value is empty (this side of the stack lives at the repo
+    # root, config path "."), collapse "{{token}}/" to "" too, so e.g.
+    # "{{backend.path}}/**" becomes "**" instead of the unmatchable "/**".
+    boundaries_text = boundaries_text.replace(f"{token}/", f"{value}/" if value else "")
+    boundaries_text = boundaries_text.replace(token, value)
+
+# Any placeholder left over means config.yml is missing that key (or the
+# corresponding side of the stack is disabled/unset) — collapse it to a
+# pattern that can never match a real path, rather than letting a literal
+# "{{...}}" string leak into a glob comparison.
+boundaries_text = re.sub(r"\{\{[a-z.]+\}\}", "__unresolved__", boundaries_text)
+
+boundaries = yaml.safe_load(boundaries_text)
 
 never_list = boundaries.pop("never", [])
 

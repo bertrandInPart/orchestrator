@@ -4,7 +4,7 @@ name: CI
 # enforcement from .orchestrator/agent-boundaries.yml becomes a real, required check rather than a
 # stated rule (blueprint §9). lint/test run the .orchestrator/dashboard workspace's real
 # `npm run lint` / `npm run test` (client oxlint + server oxlint, server's node --test suite).
-# Update these steps' working-directory/commands if app code under server/** or client/** is
+# Update these steps' working-directory/commands if app code under {{backend.path}}/** or {{frontend.path}}/** is
 # added outside the dashboard workspace.
 
 on:

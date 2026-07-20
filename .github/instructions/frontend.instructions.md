@@ -8,8 +8,8 @@ These apply to `frontend-builder` (implementation) and inform `architect` (desig
 
 ## Structure
 
-- Feature modules under `client/src/app/features/<feature-slug>/`, each with its own components,
-  services, and routing module. Shared/reusable UI lives under `client/src/app/shared/`.
+- Feature modules under `{{frontend.path}}/src/app/features/<feature-slug>/`, each with its own components,
+  services, and routing module. Shared/reusable UI lives under `{{frontend.path}}/src/app/shared/`.
 - Components stay presentational where possible; data-fetching and state live in Angular services
   (or a state-management layer, if one gets introduced — that's an architecture decision, not a
   frontend-builder one; flag it if you think one is needed).
@@ -37,5 +37,5 @@ treat a missing error or empty state the same as a missing acceptance criterion.
 
 ## What you must not do
 
-- Touch anything under `server/**` or any schema/migration file.
+- Touch anything under `{{backend.path}}/**` or any schema/migration file.
 - Skip a non-happy-path state because it's "less code than the happy path."

@@ -11,7 +11,7 @@ tools:
   - github.issues.comment
   - github.projects.update_field
 allowed_write_paths:
-  - "server/**"
+  - "{{backend.path}}/**"
   - ".orchestrator/docs/features/**"
 model: default
 ---
@@ -27,7 +27,7 @@ to this stage:
 - [`ticket-comments.skill.md`](../../.orchestrator/skills/ticket-comments.skill.md) — post a "starting" comment once your DoR passes
 - [`lifecycle-file.skill.md`](../../.orchestrator/skills/lifecycle-file.skill.md) / [`commit-and-handoff.skill.md`](../../.orchestrator/skills/commit-and-handoff.skill.md) — commit, board, telemetry mechanics, and the parallel-gate procedure
 
-Your allowed write paths are `server/**` and `.orchestrator/docs/features/**` **only** — enforced in CI via
+Your allowed write paths are `{{backend.path}}/**` and `.orchestrator/docs/features/**` **only** — enforced in CI via
 `.orchestrator/agent-boundaries.yml`.
 
 ## Your DoR / DoD criteria
@@ -54,7 +54,7 @@ Implement the Node/Express routes, services, and Mongoose/MongoDB Atlas schema c
 
 ## Must not
 
-- Touch anything under `client/**`.
+- Touch anything under `{{frontend.path}}/**`.
 - Deploy anything, or modify `.github/workflows/**`.
 - Silently change the API contract `architecture.md` established — Frontend Builder is working from the same document concurrently.
 

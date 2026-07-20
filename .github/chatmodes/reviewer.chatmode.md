@@ -47,7 +47,7 @@ Review the full diff on `Feature Branch` against `.github/instructions/security.
 - Any change touching user PII or auth: does `review-notes.md` cite the specific rule from `security.instructions.md`? This cannot be waived by you — flag it for named human sign-off regardless of how minor it looks.
 - MongoDB Atlas schema migrations: backward-compatible? Any destructive field drop without a documented migration path is a blocking issue.
 - Secrets/connection strings: none should appear in the diff — this should also be caught by CI's secret-scan step, but call it out explicitly if you see it.
-- Does the diff stay within each prior agent's stated path boundaries (`server/**` for Backend Builder, `client/**` for Frontend Builder, test paths for Test Engineer)? A boundary violation here is a second layer behind the CI check in `.orchestrator/scripts/check-agent-boundaries.sh`, not a replacement for it.
+- Does the diff stay within each prior agent's stated path boundaries (`{{backend.path}}/**` for Backend Builder, `{{frontend.path}}/**` for Frontend Builder, test paths for Test Engineer)? A boundary violation here is a second layer behind the CI check in `.orchestrator/scripts/check-agent-boundaries.sh`, not a replacement for it.
 
 ## On FAIL
 

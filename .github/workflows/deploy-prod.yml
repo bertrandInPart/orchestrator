@@ -28,5 +28,5 @@ jobs:
       - uses: actions/checkout@v5
       - name: Deploy to production (placeholder)
         run: |
-          echo "TODO: once server/** and client/** exist, build and deploy them to production here."
+          echo "TODO: once {{backend.path}}/** and {{frontend.path}}/** exist, build and deploy them to production here."
           echo "This step intentionally does nothing yet."

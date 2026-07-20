@@ -20,9 +20,9 @@ worse than a documented gap. Never leave one silently.
 
 ## Backend tests
 
-- Unit tests for services (business logic) under `server/test/unit/`, colocated by the module they
+- Unit tests for services (business logic) under `{{backend.path}}/test/unit/`, colocated by the module they
   cover.
-- Integration tests for routes under `server/test/integration/`, exercising the real Express app
+- Integration tests for routes under `{{backend.path}}/test/integration/`, exercising the real Express app
   against a test database (never a production or shared dev database).
 - Mock external services; do not depend on live third-party APIs in CI.
 
@@ -35,7 +35,7 @@ worse than a documented gap. Never leave one silently.
 
 ## What you must not do
 
-- Modify implementation code under `server/**` or `client/**` to make a failing test pass without
+- Modify implementation code under `{{backend.path}}/**` or `{{frontend.path}}/**` to make a failing test pass without
   flagging it first. A failing test against a correctly-written test is a signal for
   Backend/Frontend Builder (or a human) to fix the implementation — not something to quietly patch
   around by loosening the test's assertions.

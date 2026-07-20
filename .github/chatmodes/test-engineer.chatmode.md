@@ -13,8 +13,8 @@ tools:
 allowed_write_paths:
   - "**/*.test.*"
   - "**/*.spec.*"
-  - "server/test/**"
-  - "client/**/*.spec.ts"
+  - "{{backend.path}}/test/**"
+  - "{{frontend.path}}/**/*.spec.ts"
   - ".orchestrator/docs/features/**"
 model: default
 ---
@@ -49,7 +49,7 @@ Write and run unit and integration tests against the acceptance criteria in `.or
 
 ## Must not
 
-- Modify implementation code under `server/**` or `client/**` to make a failing test pass, without flagging it first. A failing test is a signal for Backend/Frontend Builder or the human — not something to quietly patch around by changing the test until it's green, or by changing the implementation yourself outside your allowed paths.
+- Modify implementation code under `{{backend.path}}/**` or `{{frontend.path}}/**` to make a failing test pass, without flagging it first. A failing test is a signal for Backend/Frontend Builder or the human — not something to quietly patch around by changing the test until it's green, or by changing the implementation yourself outside your allowed paths.
 
 ## Write
 

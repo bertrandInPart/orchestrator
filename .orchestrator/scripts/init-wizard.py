@@ -18,11 +18,18 @@ What it does, in order:
      you want, which stages need a human checkpoint, the circuit-breaker
      threshold, deploy targets, bot/commit identity).
   5. Writes `.orchestrator/config.yml` recording every decision.
-  6. Rewrites the path- and stack-specific literals baked into the chatmodes,
-     instructions, and agent-boundaries.yml so they match your project instead
-     of this template's original Node/Express/Angular/MongoDB/GitHub example.
-  7. If you chose Jira, swaps the GitHub-flavored ticket-workflow instructions
-     and scripts for Jira equivalents.
+  6. Rewrites the last few genuinely per-project literal path spots — the `applyTo:` frontmatter
+     line in each `.github/instructions/*.instructions.md` file, and the path mentions inside the
+     example `.github/workflows/*.yml` deploy steps' comments — plus the stack-vocabulary wording
+     (Node/Express/Angular/MongoDB/Mongoose) baked into the chatmodes and instructions, so they
+     match your project instead of this template's original example stack. Everything else that
+     used to be a literal path (chatmodes, other instructions prose, `agent-boundaries.yml`,
+     `context-scope.skill.md`) now references `.orchestrator/config.yml` via a
+     `{{backend.path}}`/`{{frontend.path}}`/`{{migrations.path}}` placeholder instead of baked-in
+     text, and needs no rewriting here — see `.orchestrator/README.md`'s "Path placeholders"
+     section for exactly how those are resolved at read/check time.
+  7. If you chose Jira, swaps the GitHub-flavored ticket-workflow instructions and scripts for
+     Jira equivalents.
 
 This is a one-shot templating pass, not an idempotent generator — it edits the
 checked-in files in place. Re-running it is safe but will re-apply
@@ -343,6 +350,18 @@ bot_identity:
 # Ordered (longest/most-specific first) literal replacements applied to the
 # fixed set of files below. Order matters: more specific phrases must be
 # replaced before the shorter substrings they contain.
+#
+# The path replacements here now only ever match two kinds of genuinely
+# per-project literal text: the `applyTo:` frontmatter line in each
+# `.github/instructions/*.instructions.md` file (matched natively by
+# Copilot's own instructions-attachment engine, which has no
+# placeholder-resolution hook) and the path mentions inside the example
+# `.github/workflows/*.yml` deploy steps' comments. Everywhere else that used
+# to contain one of these literals (chatmodes, other instructions prose,
+# `agent-boundaries.yml`, `context-scope.skill.md`) now uses a
+# `{{backend.path}}`/`{{frontend.path}}`/`{{migrations.path}}` placeholder
+# instead, resolved at read/check time against `.orchestrator/config.yml`
+# rather than baked into the file text — see `.orchestrator/README.md`.
 def build_replacements(cfg: dict) -> list[tuple[str, str]]:
     backend_path = cfg["backend_path"]
     frontend_path = cfg["frontend_path"]
@@ -392,11 +411,12 @@ def build_replacements(cfg: dict) -> list[tuple[str, str]]:
     ]
 
 
-# Files where path/stack literal substitution is safe and applies.
+# Files where path/stack literal substitution is safe and applies. (Only the
+# `applyTo:` frontmatter line and the .github/workflows/*.yml comments still
+# contain a literal path after this template's own genericization pass — see
+# the comment above build_replacements() — but stack-vocabulary substitution
+# still applies to prose throughout all of these.)
 TARGET_FILES = [
-    ".orchestrator/agent-boundaries.yml",
-    ".orchestrator/skills/context-scope.skill.md",
-    ".orchestrator/automations/README.md",
     ".github/copilot-instructions.md",
     ".github/workflows/ci.yml",
     ".github/workflows/deploy-staging.yml",

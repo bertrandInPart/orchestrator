@@ -9,6 +9,14 @@
 # Glob patterns follow standard gitignore-style matching (via git ls-files
 # --error-unmatch / a glob library — see check-agent-boundaries.sh for the
 # exact matching implementation).
+#
+# This file is generic — it ships unchanged from the orchestrator template/
+# submodule and is never customized per project. Any `{{backend.path}}`,
+# `{{frontend.path}}`, or `{{migrations.path}}` placeholder below is resolved
+# at check time by check-agent-boundaries.sh against this project's own
+# `.orchestrator/config.yml` (`backend.path` / `frontend.path` /
+# `database.migrations_path`), so a single copy of this file is valid for
+# every consuming repo regardless of its actual directory layout.
 
 spec-writer:
   - ".orchestrator/docs/features/**"
@@ -20,18 +28,18 @@ spec-auditor:
   - ".orchestrator/docs/features/**"
 
 backend-builder:
-  - "server/**"
+  - "{{backend.path}}/**"
   - ".orchestrator/docs/features/**"
 
 frontend-builder:
-  - "client/**"
+  - "{{frontend.path}}/**"
   - ".orchestrator/docs/features/**"
 
 test-engineer:
   - "**/*.test.*"
   - "**/*.spec.*"
-  - "server/test/**"
-  - "client/**/*.spec.ts"
+  - "{{backend.path}}/test/**"
+  - "{{frontend.path}}/**/*.spec.ts"
   - ".orchestrator/docs/features/**"
 
 reviewer:
@@ -40,7 +48,7 @@ reviewer:
 release-engineer:
   - ".orchestrator/docs/features/**"
   - "CHANGELOG.md"
-  - "migrations/**"
+  - "{{migrations.path}}/**"
 
 eval-grader:
   - ".orchestrator/evals/results/**"
