@@ -46,7 +46,28 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check board setup is complete
+        id: config-check
+        env:
+          GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
+        run: |
+          # PROJECT_OWNER/PROJECT_NUMBER stay as literal placeholders until a human runs
+          # .orchestrator/scripts/setup-github-project.sh and records the real values (see
+          # .github/instructions/github-workflow.instructions.md), and CHAIN_BOT_TOKEN must be
+          # added as a repo secret separately (see .orchestrator/docs/ops/bot-identity.md). Skip
+          # the rest of this job instead of failing every 30 minutes until both are done.
+          if [[ "$PROJECT_OWNER" == "<PROJECT_OWNER>" || "$PROJECT_NUMBER" == "<PROJECT_NUMBER>" ]]; then
+            echo "::warning::PROJECT_OWNER/PROJECT_NUMBER in chain-health.yml are still placeholders - run .orchestrator/scripts/setup-github-project.sh and fill them in. Skipping chain health checks."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          elif [[ -z "$GH_TOKEN" ]]; then
+            echo "::warning::CHAIN_BOT_TOKEN secret is not set - add it in repo settings (see .orchestrator/docs/ops/bot-identity.md). Skipping chain health checks."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Scan for stalled features
+        if: steps.config-check.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
         run: |
@@ -118,6 +139,7 @@ jobs:
           PYEOF
 
       - name: Ensure the stage-timeout label exists
+        if: steps.config-check.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
         run: |
@@ -127,6 +149,7 @@ jobs:
             2>/dev/null || true
 
       - name: Scan for hung stage attempts (timeout guard)
+        if: steps.config-check.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ secrets.CHAIN_BOT_TOKEN }}
         run: |
